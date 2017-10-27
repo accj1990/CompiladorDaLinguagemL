@@ -10,6 +10,7 @@ public class AnalisadorLexico
 	public static BufferedReader in ;
 	public static String nomeArq = "";
 	public static int linha = 1;
+	public static char caractere = ' ';
 	public static boolean limpar = false;
 	private static String lexema;
 	
@@ -30,20 +31,20 @@ public class AnalisadorLexico
 	public static RegLex analisar() throws IOException
 	{
 		RegLex rg = null;
-		int estado;
-		int inteiro;
+		int estado = 0;
+		int inteiro = 0;
 		lexema = "";
-		char caractere = ' ';
-		estado = 0;
 		while(estado != 17) // aceitacao
 		{
+			//System.out.println(estado+" "+lexema);
 			if (!limpar)
-			{	if (in.ready())
-				{	
-					inteiro = in.read();
+			{		
+				inteiro = in.read();
+				
+				if (inteiro != -1 && estado != 17)
+				{
 					if (isCaractereValido(caractere))
-					{
-						caractere = (char) inteiro;
+					{	caractere = (char) inteiro;
 						if (caractere == '\n')
 						{
 							linha++;
@@ -51,132 +52,137 @@ public class AnalisadorLexico
 					}
 					else
 					{
-						System.out.println("["+linha+"]: caractere invalido ["+caractere+"]");
-						in.close();
-						System.exit(0);
+						GerenciadorErros.exibirErro(linha, GerenciadorErros.ERR_CARACTERE_INVALIDO, lexema);
 					}
 				}
-				else 
+				else
 				{
-					in.close();
 					return rg;
 				}
+				
 			}
 			else
 			{
 				lexema = "";
 				limpar = false;
 			}
-			
+
 			switch(estado)
 			{
-				case 0:
-					if(caractere == ' ' || caractere == '\r' 
-							|| caractere == '\n' || caractere == '\t')
+			case 0:
+				
+				if(caractere == ' ' || caractere == '\r' 
+						|| caractere == '\n' || caractere == '\t')
+				{
+					estado = 0;
+				}
+				
+				else if (caractere == '/')
+				{
+					lexema+=caractere;
+					estado = 1;
+				}
+				else if(caractere == '\'')
+				{
+					lexema+=caractere;
+					estado = 4;
+				}
+				else if (caractere == '0')
+				{
+					lexema+=caractere;
+					estado = 9;
+				}
+				else if (caractere == '=')
+				{
+					lexema+= caractere;
+					estado = 15;
+				}
+				else if (caractere == '>')
+				{
+					lexema+= caractere;
+					estado = 14;
+				}
+				else if(caractere == '!')
+				{
+					lexema+= caractere;
+					estado = 16;
+				}
+				else if (caractere == '(' ||
+							caractere == ')' ||
+								caractere == '+'||
+									caractere == '-' ||
+										caractere == '*' ||
+											caractere == ',' ||
+												caractere == ';')
+				{
+					lexema +=caractere;
+					estado = 17; // estado final
+					
+					if (caractere == '(')
 					{
-						estado = 0;
-					}
-					else if (caractere == '/')
-					{
-						lexema+=caractere;
-						estado = 1;
-					}
-					else if(caractere == '\'')
-					{
-						lexema+= caractere;
-						estado = 4;
-					}
-					else if (caractere == '0')
-					{
-						lexema+= caractere;
-						estado = 9;
-					}
-					else if (caractere == '=')
-					{
-						lexema+= caractere;
-						estado = 15;
-					}
-					else if (caractere == '>')
-					{
-						lexema+= caractere;
-						estado = 14;
-					}
-					else if(caractere == '!')
-					{
-						lexema+= caractere;
-						estado = 16;
-					}
-					else if (caractere == '(' ||
-								caractere == ')' ||
-									caractere == '+'||
-										caractere == '-' ||
-											caractere == '*' ||
-												caractere == ',' ||
-													caractere == ';')
-					{
-						lexema +=caractere;
-						estado = 17; // estado final
-						
-						if (caractere == '(')
-						{
-							rg = new RegLex(lexema, TabelaSimbolos.OPENPAR,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+						rg = new RegLex(lexema, TabelaSimbolos.OPENPAR,TabelaSimbolos.TIPO_VAZIO,
+											TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 
-						}
-						else if (caractere == ')')
-						{
-							rg = new RegLex(lexema, TabelaSimbolos.CLOSEPAR,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
-
-
-						}
-						else if (caractere == '+')
-						{
-							rg = new RegLex(lexema, TabelaSimbolos.PLUS,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+					}
+					else if (caractere == ')')
+					{
+						rg = new RegLex(lexema, TabelaSimbolos.CLOSEPAR,TabelaSimbolos.TIPO_VAZIO,
+											TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 
 
-						}
-						else if (caractere == '-')
-						{
-							rg = new RegLex(lexema, TabelaSimbolos.MINUS,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
-
-
-						}
-						else if (caractere == '*')
-						{
-							rg = new RegLex(lexema, TabelaSimbolos.TIMES,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
-
-
-						}
-						else if (caractere == ',')
-						{
-							rg = new RegLex(lexema, TabelaSimbolos.COMMA,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
-
-						}
-						else
-						{
-							rg = new RegLex(lexema, TabelaSimbolos.SEMICOLON,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
-						}
 					}
-					else if (caractere == '<')
+					else if (caractere == '+')
 					{
-						lexema+= caractere;
-						estado = 13;
+						rg = new RegLex(lexema, TabelaSimbolos.PLUS,TabelaSimbolos.TIPO_VAZIO,
+											TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+
 					}
-					else if ((""+caractere).matches("[1-9]+"))
+					else if (caractere == '-')
 					{
-						lexema+= caractere;
-						estado = 12;
-					}	
-					else if (caractere == '_')
-					{
-						lexema+=caractere;
-						estado = 7;
+						rg = new RegLex(lexema, TabelaSimbolos.MINUS,TabelaSimbolos.TIPO_VAZIO,
+											TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+
 					}
-					else if ((""+caractere).matches("[a-zA-Z]+"))
+					else if (caractere == '*')
 					{
-						lexema+=caractere;
-						estado = 6;
+						rg = new RegLex(lexema, TabelaSimbolos.TIMES,TabelaSimbolos.TIPO_VAZIO,
+											TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+
+
 					}
-				break;
+					else if (caractere == ',')
+					{
+						rg = new RegLex(lexema, TabelaSimbolos.COMMA,TabelaSimbolos.TIPO_VAZIO,
+											TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+
+					}
+					else
+					{
+						rg = new RegLex(lexema, TabelaSimbolos.SEMICOLON,TabelaSimbolos.TIPO_VAZIO,
+											TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+					}
+				}
+				else if (caractere == '<')
+				{
+					lexema+= caractere;
+					estado = 13;
+				}
+				else if ((""+caractere).matches("[1-9]+"))
+				{
+					lexema+= caractere;
+					estado = 12;
+				}	
+				else if (caractere == '_')
+				{
+					lexema+=caractere;
+					estado = 7;
+				}
+				else if ((""+caractere).matches("[a-zA-Z]+"))
+				{
+					lexema+=caractere;
+					estado = 6;
+				}
+			break;	
 				
 				case 1:
 					if (caractere == '*')
@@ -233,17 +239,7 @@ public class AnalisadorLexico
 					else
 					{
 						lexema+= caractere;
-						if (isCaractereValido(caractere) == false)
-						{
-							System.out.println("["+linha+"]: caractere invalido ["+lexema+"].");
-
-						}
-						else
-						{
-							System.out.println("["+linha+"]: lexema nao identificado ["+lexema+"].");
-
-						}
-						System.exit(0);
+						GerenciadorErros.exibirErro(linha, GerenciadorErros.ERR_LEXEMA_NAO_IDENTIFICADO, lexema);
 					}
 				break;
 				
@@ -257,10 +253,10 @@ public class AnalisadorLexico
 					{
 						limpar = true;
 						estado = 17;
-						rg = new RegLex(lexema, TabelaSimbolos.CONST,TabelaSimbolos.TIPO_STRING,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+						rg = new RegLex(lexema, TabelaSimbolos.CONST,TabelaSimbolos.TIPO_STRING,
+											TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 
 					}
-					
 				break;
 				
 				case 6:
@@ -274,24 +270,30 @@ public class AnalisadorLexico
 					}
 					else
 					{
-						byte pos = TabelaSimbolos.getToken(lexema);
-						if (pos != -1)
+						byte token = TabelaSimbolos.getToken(lexema);
+						if (token != -1)
 						{
 							int tipo = TabelaSimbolos.TIPO_LOGICO;
 							if (lexema.equals("true") || lexema.equals("false"))
 							{
-								rg = new RegLex(lexema, TabelaSimbolos.CONST ,tipo,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+								rg = new RegLex(lexema, TabelaSimbolos.CONST ,tipo,
+													TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 							}
 							else
 							{
-								rg = new RegLex(lexema, pos,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+								rg = new RegLex(lexema, token,TabelaSimbolos.TIPO_VAZIO,
+													TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 							}
 							
 						}
 						else
 						{
-							rg = new RegLex(lexema, TabelaSimbolos.ID,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);						
-							TabelaSimbolos.inserirRegTabela(lexema, TabelaSimbolos.ID,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+							rg = new RegLex(lexema, TabelaSimbolos.ID,TabelaSimbolos.TIPO_VAZIO,
+												TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+							
+							TabelaSimbolos.inserirRegTabela(lexema, TabelaSimbolos.ID,TabelaSimbolos.TIPO_VAZIO,
+										TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+
 						}
 						
 						limpar = true;
@@ -314,9 +316,7 @@ public class AnalisadorLexico
 					else
 					{
 						lexema+= caractere;
-						System.out.println("["+linha+"]: lexema nao identificado ["+lexema+"].");
-						System.exit(0);
-
+						GerenciadorErros.exibirErro(linha, GerenciadorErros.ERR_LEXEMA_NAO_IDENTIFICADO, lexema);
 					}
 				break;	
 				
@@ -332,16 +332,21 @@ public class AnalisadorLexico
 					}
 					else
 					{
-						byte pos = TabelaSimbolos.getToken(lexema);
-						if (pos != -1)
+						byte token = TabelaSimbolos.getToken(lexema);
+						if (token != -1)
 						{
-							rg = new RegLex(lexema, pos,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+							rg = new RegLex(lexema, token,TabelaSimbolos.TIPO_VAZIO,
+												TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 
 						}
 						else
 						{
-							rg = new RegLex(lexema, TabelaSimbolos.ID,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
-							TabelaSimbolos.inserirRegTabela(lexema, TabelaSimbolos.ID,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+							rg = new RegLex(lexema, TabelaSimbolos.ID,TabelaSimbolos.TIPO_VAZIO,
+												TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+							
+							TabelaSimbolos.inserirRegTabela(lexema, TabelaSimbolos.ID,TabelaSimbolos.TIPO_VAZIO,
+																TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+							
 						}
 						limpar = true;
 						estado = 17;
@@ -356,7 +361,8 @@ public class AnalisadorLexico
 					}
 					else
 					{
-						rg = new RegLex(lexema, TabelaSimbolos.CONST,TabelaSimbolos.TIPO_BYTE,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+						rg = new RegLex(lexema, TabelaSimbolos.CONST,TabelaSimbolos.TIPO_BYTE,
+											TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 						limpar = true;
 						estado = 17;
 					}
@@ -373,9 +379,7 @@ public class AnalisadorLexico
 					else
 					{
 						lexema+= caractere;
-						System.out.println("["+linha+"]: lexema nao identificado ["+lexema+"]");
-						System.exit(0);
-
+						GerenciadorErros.exibirErro(linha, GerenciadorErros.ERR_LEXEMA_NAO_IDENTIFICADO, lexema);
 					}
 				break;
 				
@@ -390,13 +394,15 @@ public class AnalisadorLexico
 						int valor = Integer.parseInt(x,16);
 						if (valor >= 0 && valor <= 255)
 						{
-							rg = new RegLex(lexema, TabelaSimbolos.CONST,TabelaSimbolos.TIPO_BYTE,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+							rg = new RegLex(lexema, TabelaSimbolos.CONST,TabelaSimbolos.TIPO_BYTE,
+												TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 						}
 						else
 						{
 							if (valor >= -32768 && valor <= 32767)
 							{
-							    rg = new RegLex(lexema, TabelaSimbolos.CONST,TabelaSimbolos.TIPO_INTEIRO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+							    rg = new RegLex(lexema, TabelaSimbolos.CONST,TabelaSimbolos.TIPO_INTEIRO,
+							    					TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 							}
 							else
 							{
@@ -408,8 +414,7 @@ public class AnalisadorLexico
 					else
 					{
 						lexema+= caractere;
-						System.out.println("["+linha+"]: lexema nao identificado ["+lexema+"]");
-						System.exit(0);					
+						GerenciadorErros.exibirErro(linha, GerenciadorErros.ERR_LEXEMA_NAO_IDENTIFICADO, lexema);
 					}
 				break;
 				
@@ -424,14 +429,17 @@ public class AnalisadorLexico
 						int valor = Integer.parseInt(lexema,16);
 						if (valor >= 0 && valor <= 255)
 						{
-							rg = new RegLex(lexema, TabelaSimbolos.CONST,TabelaSimbolos.TIPO_BYTE,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+							rg = new RegLex(lexema, TabelaSimbolos.CONST,TabelaSimbolos.TIPO_BYTE,
+												TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 						}
 						else if (valor >= -32768 && valor <= 32767)
 						{
-							rg = new RegLex(lexema, TabelaSimbolos.CONST,TabelaSimbolos.TIPO_INTEIRO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+							rg = new RegLex(lexema, TabelaSimbolos.CONST,TabelaSimbolos.TIPO_INTEIRO,
+												TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 						}
 						else
 						{
+							
 							System.out.println("["+linha+"]: constante fora dos limites permitidos <-32768 >= valor <= 32767> ["+lexema+"]");
 							System.exit(0);
 						}
@@ -446,12 +454,14 @@ public class AnalisadorLexico
 					{
 						lexema+=caractere;
 						estado = 17;
-						rg = new RegLex(lexema, TabelaSimbolos.MINOREQUALS,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+						rg = new RegLex(lexema, TabelaSimbolos.MINOREQUALS,TabelaSimbolos.TIPO_VAZIO,
+											TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 
 					}
 					else
 					{
-						rg = new RegLex(lexema, TabelaSimbolos.MINOR,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+						rg = new RegLex(lexema, TabelaSimbolos.MINOR,TabelaSimbolos.TIPO_VAZIO,
+											TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 
 						limpar = true;
 						estado = 17;
@@ -463,30 +473,34 @@ public class AnalisadorLexico
 					{
 						lexema+=caractere;
 						estado = 17;
-						rg = new RegLex(lexema, TabelaSimbolos.MAJOREQUALS,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+						rg = new RegLex(lexema, TabelaSimbolos.MAJOREQUALS,TabelaSimbolos.TIPO_VAZIO,
+											TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 
 					}
 					else
 					{
 						limpar = true;
 						estado = 17;
-						rg = new RegLex(lexema, TabelaSimbolos.MAJOR,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
-
+						rg = new RegLex(lexema, TabelaSimbolos.MAJOR,TabelaSimbolos.TIPO_VAZIO,
+											TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 					}
-				break;	 
+				break;
+				
 				case 15:
 					if (caractere == '=')
 					{
 						lexema+=caractere;
 						estado = 17;
-						rg = new RegLex(lexema, TabelaSimbolos.COMPEQUALS,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+						rg = new RegLex(lexema, TabelaSimbolos.COMPEQUALS,TabelaSimbolos.TIPO_VAZIO,
+											TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 
 					}
 					else
 					{
 						limpar = true;
 						estado = 17;
-						rg = new RegLex(lexema, TabelaSimbolos.ATTEQUALS,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
+						rg = new RegLex(lexema, TabelaSimbolos.ATTEQUALS,TabelaSimbolos.TIPO_VAZIO,
+											TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 
 					}
 				break;
@@ -494,16 +508,15 @@ public class AnalisadorLexico
 				case 16:
 					if (caractere == '=')
 					{
-						
 						lexema+=caractere;
 						estado = 17;
-						rg = new RegLex(lexema, TabelaSimbolos.DIFF,TabelaSimbolos.TIPO_VAZIO,TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
-
+						rg = new RegLex(lexema, TabelaSimbolos.DIFF,TabelaSimbolos.TIPO_VAZIO,
+											TabelaSimbolos.CLASSE_VAZIA,TabelaSimbolos.END_VAZIO);
 					}
 					else
 					{
 						// token nao identificado
-						System.out.println("["+linha+"]: lexema nao identificado ["+lexema+"].");
+						GerenciadorErros.exibirErro(linha, GerenciadorErros.ERR_LEXEMA_NAO_IDENTIFICADO, lexema);
 					}
 				break;	
 				
@@ -512,6 +525,7 @@ public class AnalisadorLexico
 				break;
 			}
 		}
+		
 		return rg;
 	}
 	

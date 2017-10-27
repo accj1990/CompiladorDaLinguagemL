@@ -122,7 +122,7 @@ public class TabelaSimbolos
 	    	RegLex reg = tabela.get(lexema);
 	        return reg; 
 	    }
-	  
+	      
 	    public static void setClasse(String lexema, int classe)
 	    {
 	    	RegLex reg = tabela.get(lexema);
