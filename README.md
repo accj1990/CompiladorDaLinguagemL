@@ -1,4 +1,4 @@
-# CompiladorDaLinguagemL
+# Compilador Da Linguagem L
 
 javac Compilador.java
 
