@@ -13,7 +13,20 @@ import java.io.IOException;
  * 7. S → simbolo inicial
  * 8. D → declaracao
  * 9. C → comandos
- * 10.
+ * 10. TIPO → tipos
+ * 11. DV → declaração de variável
+ * 12. DC → declaração de constante
+ * 13. CA → comando de atribuição
+ * 14. CT → comando de teste
+ * 15. CR → comando de repetição
+ * 16. CL → comando de leitura
+ * 17. CE → comando de escrita
+ * 18. CN → comando nulo
+ * 19. EXP → expressão
+ * 20. EXPS → expressão simples
+ * 21. T → termo
+ * 22. F → fator
+ 
  * Gramatica da Linguagem L
  * 
  * S → {D}+ main {C}+ end
